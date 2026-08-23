@@ -23,11 +23,23 @@ export function getPool(): pg.Pool {
   return pool;
 }
 
+/** Executor abstraction so services can run inside a transaction client. */
+export type DbExecutor = <T extends pg.QueryResultRow = pg.QueryResultRow>(
+  text: string,
+  params?: unknown[]
+) => Promise<pg.QueryResult<T>>;
+
 export async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(
   text: string,
   params?: unknown[]
 ): Promise<pg.QueryResult<T>> {
   return getPool().query<T>(text, params);
+}
+
+/** Wrap a PoolClient so it satisfies DbExecutor. */
+export function clientExecutor(client: pg.PoolClient): DbExecutor {
+  return (async (text: string, params?: unknown[]) =>
+    (await client.query(text, params)) as pg.QueryResult<pg.QueryResultRow>) as DbExecutor;
 }
 
 export async function withTransaction<T>(
