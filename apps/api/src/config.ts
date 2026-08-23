@@ -105,8 +105,18 @@ const envSchema = z.object({
   OIDC_ISSUER_URL: z.string().url().default("http://localhost:8080"),
   OAUTH_AUTH_CODE_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 
+  // Ed25519 JWT signing keys (PEM format). When absent, ephemeral keys are generated (dev only).
+  JWT_PRIVATE_KEY: z.string().optional(),
+  JWT_PUBLIC_KEY: z.string().optional(),
+  JWT_KID: z.string().default("dejoiy-auth-key-1"),
+
   CSP_FRAME_ANCESTORS: z.string().default("'none'"),
-  HSTS_MAX_AGE: z.coerce.number().int().nonnegative().default(31536000)
+  HSTS_MAX_AGE: z.coerce.number().int().nonnegative().default(31536000),
+
+  // Webhook configuration
+  WEBHOOK_MAX_RETRIES: z.coerce.number().int().nonnegative().default(5),
+  WEBHOOK_RETRY_DELAY_MS: z.coerce.number().int().nonnegative().default(5000),
+  WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(10000)
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

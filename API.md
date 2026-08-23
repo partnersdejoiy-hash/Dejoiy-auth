@@ -94,9 +94,11 @@ Errors use the envelope `{ "error": { "code", "message", "details?", "correlatio
 | Method | Path |
 | --- | --- |
 | GET | `/oidc/.well-known/openid-configuration` |
+| GET | `/oidc/jwks` — public Ed25519 keys for external token verification |
 | GET | `/oidc/authorize` (authenticated browser redirect) |
 | POST | `/oidc/token` (`authorization_code` + PKCE, `refresh_token`, `client_credentials`) |
 | GET | `/oidc/userinfo` |
+| POST | `/oidc/rotate-keys` — rotate JWT signing keys (admin only) |
 | GET | `/oidc/pkce/new` · POST `/oidc/pkce` |
 
 ## WFM
@@ -134,4 +136,18 @@ Errors use the envelope `{ "error": { "code", "message", "details?", "correlatio
 
 ## Health (no /api prefix)
 
-`GET /health/live` · `GET /health/ready` · `GET /health`
+`GET /health/live` · `GET /health/ready` · `GET /health` · `GET /health/system` · `GET /version`
+
+## Webhooks (admin)
+
+| Method | Path | Permission |
+| --- | --- | --- |
+| GET | `/api/v1/webhooks` | `webhook.read` |
+| GET | `/api/v1/webhooks/events` | `webhook.read` — list all event types |
+| POST | `/api/v1/webhooks` | `webhook.create` |
+| PATCH | `/api/v1/webhooks/:id` | `webhook.update` |
+| DELETE | `/api/v1/webhooks/:id` | `webhook.delete` |
+| POST | `/api/v1/webhooks/:id/rotate-secret` | `webhook.update` |
+| POST | `/api/v1/webhooks/:id/test` | `webhook.test` |
+| GET | `/api/v1/webhooks/:id/deliveries` | `webhook.read` |
+| POST | `/api/v1/webhooks/verify-signature` | `webhook.read` |

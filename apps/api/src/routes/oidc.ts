@@ -7,6 +7,7 @@ import {
   getClientByClientId, verifyClientSecret, validateRedirectUri, getApplicationScopes,
   issueAuthorizationCode, exchangeAuthorizationCode, exchangeClientCredentials, pkceChallenge
 } from "../services/oauth.js";
+import { getJWKS } from "../services/jwt.js";
 import { errors } from "../errors.js";
 import { randomToken } from "../crypto.js";
 
@@ -49,7 +50,7 @@ export async function oidcRoutes(app: FastifyInstance): Promise<void> {
       code_challenge_methods_supported: ["S256", "plain"],
       scopes_supported: ["openid", "profile", "email"],
       subject_types_supported: ["public"],
-      id_token_signing_alg_values_supported: ["HS256"],
+      id_token_signing_alg_values_supported: ["EdDSA"],
       claims_supported: ["sub", "name", "email", "role", "userNumber"]
     };
   });
@@ -145,8 +146,19 @@ export async function oidcRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
-  // JWKS (HS256 — exposes the key id; symmetric keys are not published)
-  app.get("/oidc/jwks", async () => ({ keys: [] }));
+  // JWKS — asymmetric Ed25519 public keys for external token verification
+  app.get("/oidc/jwks", async (_request, reply) => {
+    reply.header("Cache-Control", "public, max-age=3600");
+    return getJWKS();
+  });
+
+  // Rotate signing keys (admin-only — requires system.config.update permission)
+  app.post("/oidc/rotate-keys", { preHandler: [authenticate] }, async (_request, reply) => {
+    const { rotateSigningKeys } = await import("../services/jwt.js");
+    const result = await rotateSigningKeys();
+    reply.status(200);
+    return { rotated: true, previousKid: result.oldKid, currentKid: result.newKid };
+  });
 
   // PKCE helper (dev convenience)
   app.post("/oidc/pkce", async (request) => {
