@@ -57,27 +57,28 @@ class SmtpProvider implements MailProvider {
 
 /**
  * DEJOIY Swiss Mail API adapter.
- * Endpoint contract (v1 draft): POST {url}/v1/mail/send with
- * { "to": [], "subject": "", "text": "", "html": "" }, headers
- * Authorization: Bearer {key}. Configure via DEJOIY_MAIL_API_URL + DEJOIY_MAIL_API_KEY.
+ * Verified contract (live): POST {url}/v1/emails with
+ * { "from": "DEJOIY <noreply@dejoiy.com>", "to": [], "subject": "", "html": "" },
+ * headers Authorization: Bearer {key}. Configure via DEJOIY_MAIL_API_URL +
+ * DEJOIY_MAIL_API_KEY (e.g. DEJOIY_MAIL_API_URL=https://api-mail.dejoiy.com).
  */
 class DejoiySwissProvider implements MailProvider {
   readonly name = "dejoiy-swiss";
   async send(message: MailMessage): Promise<void> {
     const cfg = getConfig();
     if (!cfg.DEJOIY_MAIL_API_URL) throw new Error("DEJOIY_MAIL_API_URL not configured");
-    const res = await fetch(`${cfg.DEJOIY_MAIL_API_URL.replace(/\/$/, "")}/v1/mail/send`, {
+    const res = await fetch(`${cfg.DEJOIY_MAIL_API_URL.replace(/\/$/, "")}/v1/emails`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: cfg.DEJOIY_MAIL_API_KEY ? `Bearer ${cfg.DEJOIY_MAIL_API_KEY}` : ""
       },
       body: JSON.stringify({
+        from: message.from ?? cfg.MAIL_FROM,
         to: message.to,
         subject: message.subject,
         text: message.text,
-        html: message.html,
-        from: message.from ?? cfg.MAIL_FROM
+        html: message.html
       })
     });
     if (!res.ok) {

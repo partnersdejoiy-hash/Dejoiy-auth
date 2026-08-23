@@ -85,7 +85,7 @@ export async function bootstrapSuperAdmin(input: {
     metadata: { userNumber: user.user_number }
   });
 
-  await sendNotificationEmail("welcome", welcomeEmail(input.fullName ?? "Super Admin"));
+  await sendNotificationEmail("welcome", welcomeEmail(input.fullName ?? "Super Admin"), { to: input.email });
 
   return {
     userNumber: user.user_number,

@@ -25,7 +25,6 @@ export const EMAIL_EVENTS = {
 export type EmailEvent = (typeof EMAIL_EVENTS)[keyof typeof EMAIL_EVENTS];
 
 export interface EmailTemplateInput {
-  to?: string; // filled by sendNotificationEmail
   subject: string;
   text: string;
   html?: string;
@@ -39,22 +38,23 @@ export interface EmailTemplateInput {
 export async function sendNotificationEmail(
   event: EmailEvent,
   input: EmailTemplateInput,
-  opts?: { isError?: boolean }
+  opts?: { isError?: boolean; to?: string }
 ): Promise<void> {
   const cfg = getConfig();
   const from = opts?.isError ? cfg.MAIL_ERRORS_FROM : cfg.MAIL_FROM;
+  const to = opts?.to ?? "";
 
   let eventId: string | null = null;
   try {
     const { rows } = await query(
       `INSERT INTO notification_events (event_type, recipients, payload, status, correlation_id)
        VALUES ($1,$2,$3,'queued',$4) RETURNING id`,
-      [event, JSON.stringify([input.to]), JSON.stringify({ subject: input.subject }), input.correlationId ?? null]
+      [event, JSON.stringify([to]), JSON.stringify({ subject: input.subject }), input.correlationId ?? null]
     );
     eventId = rows[0]?.id ?? null;
 
     await sendMail({
-      to: input.to ? [input.to] : [],
+      to: to ? [to] : [],
       subject: input.subject,
       text: input.text,
       html: input.html,

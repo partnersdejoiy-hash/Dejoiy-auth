@@ -148,7 +148,7 @@ export async function login(
         severity: "high", userId: user.id, ip: ctx.ip, userAgent: ctx.userAgent,
         metadata: { attempts }, correlationId
       });
-      await sendNotificationEmail("account_locked", accountLockedEmail(user.email ?? user.user_number));
+      await sendNotificationEmail("account_locked", accountLockedEmail(user.email ?? user.user_number), { to: user.email ?? user.user_number });
       await fail("account_locked", SECURITY_EVENT_TYPES.LOGIN_FAILED, "high");
     }
 
@@ -254,9 +254,9 @@ async function finalizeLogin(
   });
 
   // New-login + suspicious-login notifications (best-effort, async-safe).
-  void sendNotificationEmail("new_login", newLoginEmail(payload.fullName ?? "there", ctx.ip, ctx.userAgent));
+  void sendNotificationEmail("new_login", newLoginEmail(payload.fullName ?? "there", ctx.ip, ctx.userAgent), { to: payload.email ?? undefined });
   if (opts.wasSuspicious) {
-    void sendNotificationEmail("suspicious_login", suspiciousLoginEmail(payload.fullName ?? "there", ctx.ip, ctx.userAgent));
+    void sendNotificationEmail("suspicious_login", suspiciousLoginEmail(payload.fullName ?? "there", ctx.ip, ctx.userAgent), { to: payload.email ?? undefined });
   }
 
   const accessToken = await issueAccessToken({
@@ -364,7 +364,7 @@ export async function forgotPassword(email: string, ctx: LoginContext): Promise<
   await redisSetEx(RESET_KEY(normalized), 60, "1");
 
   const resetUrl = `${cfg.APP_URL}/reset-password?token=${encodeURIComponent(token)}`;
-  await sendNotificationEmail("password_reset", passwordResetEmail(resetUrl, 15));
+  await sendNotificationEmail("password_reset", passwordResetEmail(resetUrl, 15), { to: user.email ?? undefined });
   await recordSecurityEvent({
     eventType: SECURITY_EVENT_TYPES.PASSWORD_RESET, severity: "info", userId: user.id,
     ip: ctx.ip, userAgent: ctx.userAgent, correlationId: ctx.correlationId
@@ -413,7 +413,7 @@ export async function resetPassword(
     eventType: SECURITY_EVENT_TYPES.PASSWORD_CHANGED, severity: "info", userId: user.id,
     ip: ctx.ip, correlationId: ctx.correlationId
   });
-  await sendNotificationEmail("password_changed", passwordChangedEmail());
+  await sendNotificationEmail("password_changed", passwordChangedEmail(), { to: user.email ?? undefined });
 }
 
 // ---- Email verification -------------------------------------------------------------
@@ -435,7 +435,7 @@ export async function requestEmailVerification(userId: string, ctx: LoginContext
   await redisSetEx(VERIFY_KEY(userId), 60, "1");
 
   const verifyUrl = `${getConfig().APP_URL}/verify-email?token=${encodeURIComponent(token)}`;
-  await sendNotificationEmail("verify_email", verifyEmailEmail(verifyUrl, 60));
+  await sendNotificationEmail("verify_email", verifyEmailEmail(verifyUrl, 60), { to: user.email });
 }
 
 export async function verifyEmail(token: string, ctx: LoginContext): Promise<void> {
@@ -528,7 +528,7 @@ export async function changeOwnPassword(
     actorUserId: userId, action: "PASSWORD_CHANGED_SELF", targetType: "user", targetId: userId,
     correlationId: ctx.correlationId, ip: ctx.ip
   });
-  await sendNotificationEmail("password_changed", passwordChangedEmail());
+  await sendNotificationEmail("password_changed", passwordChangedEmail(), { to: user.email ?? undefined });
 }
 
 export { welcomeEmail };
