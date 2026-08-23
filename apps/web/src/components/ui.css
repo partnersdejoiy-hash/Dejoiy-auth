@@ -411,3 +411,161 @@
 .btn-mini:hover { background: rgba(0, 229, 255, 0.16); border-color: var(--dj-border-strong); }
 .btn-mini.danger { color: var(--dj-danger); border-color: rgba(255, 92, 122, 0.3); background: rgba(255, 92, 122, 0.08); }
 .btn-mini.danger:hover { background: rgba(255, 92, 122, 0.16); }
+
+/* ===========================================================================
+   RESPONSIVE — UI Components
+   =========================================================================== */
+
+/* Tablet portrait */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 28px 24px;
+    max-width: 380px;
+  }
+  .stat-card {
+    padding: 16px 18px;
+  }
+  .stat-value {
+    font-size: 24px;
+  }
+  .modal {
+    max-width: 90vw;
+  }
+  .toast-stack {
+    max-width: 300px;
+    right: 12px;
+    top: 12px;
+  }
+  .toast {
+    padding: 10px 14px;
+    font-size: 12.5px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .auth-card {
+    padding: 24px 18px;
+    border-radius: var(--dj-radius);
+    max-width: 100%;
+  }
+  .secure-input label {
+    font-size: 11px;
+  }
+  .secure-input-wrap input {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .auth-btn {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  .pw-strength {
+    gap: 8px;
+  }
+  .pw-strength-label {
+    font-size: 10px;
+  }
+  .stat-card {
+    padding: 14px 16px;
+  }
+  .stat-value {
+    font-size: 22px;
+  }
+  .stat-label {
+    font-size: 10.5px;
+  }
+  .modal-head {
+    padding: 14px 16px;
+  }
+  .modal-head h3 {
+    font-size: 15px;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .modal-close {
+    font-size: 20px;
+  }
+  .empty-state {
+    padding: 30px 16px;
+  }
+  .copy-field {
+    padding: 8px 10px;
+  }
+  .btn-mini {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .error-screen {
+    padding: 18px;
+  }
+  .error-code {
+    font-size: 13px;
+  }
+}
+
+/* Mobile small */
+@media (max-width: 360px) {
+  .auth-card {
+    padding: 20px 14px;
+  }
+  .secure-input {
+    margin-bottom: 12px;
+  }
+  .secure-input-wrap input {
+    padding: 9px 10px;
+    font-size: 12.5px;
+  }
+  .pw-toggle {
+    padding: 6px;
+  }
+  .auth-btn {
+    padding: 10px 14px;
+    font-size: 12.5px;
+  }
+  .status-badge {
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+  .security-badge {
+    padding: 2px 6px;
+    font-size: 9px;
+  }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .auth-card {
+    padding: 16px 20px;
+  }
+  .secure-input {
+    margin-bottom: 10px;
+  }
+  .secure-input label {
+    font-size: 10.5px;
+    margin-bottom: 4px;
+  }
+  .secure-input-wrap input {
+    padding: 8px 10px;
+  }
+  .auth-btn {
+    padding: 9px 16px;
+  }
+  .pw-strength {
+    margin-bottom: 8px;
+  }
+  .loading-screen {
+    min-height: auto;
+    padding: 20px;
+  }
+  .error-screen {
+    min-height: auto;
+    padding: 16px;
+  }
+  .loading-core {
+    width: 56px;
+    height: 56px;
+  }
+}

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2DAD"/>
+      <stop offset="35%" stop-color="#B830FF"/>
+      <stop offset="65%" stop-color="#6A5BFF"/>
+      <stop offset="100%" stop-color="#0099FF"/>
+    </linearGradient>
+  </defs>
+  <!-- D icon -->
+  <g transform="translate(110,4) scale(0.52)">
+    <rect x="8" y="8" width="184" height="184" rx="44" fill="url(#fg)"/>
+    <rect x="16" y="16" width="168" height="168" rx="38" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="4"/>
+    <path d="M68 56 L108 56 C138 56 158 76 158 100 C158 124 138 144 108 144 L68 144 Z M80 68 L80 132 L108 132 C130 132 146 118 146 100 C146 82 130 68 108 68 Z" fill="white"/>
+    <circle cx="128" cy="100" r="6" fill="white"/>
+  </g>
+  <!-- DEJOIY text -->
+  <text x="160" y="125" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="38" font-weight="900" letter-spacing="4" fill="#FFFFFF">DEJ</text>
+  <text x="219" y="125" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="38" font-weight="900" letter-spacing="4" fill="url(#fg)">OIY</text>
+  <!-- YOU+JOY tagline -->
+  <text x="160" y="152" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="6" fill="#64748b">YOU</text>
+  <text x="200" y="152" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="1" fill="url(#fg)">+</text>
+  <text x="222" y="152" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="6" fill="url(#fg)">JOY</text>
+</svg>

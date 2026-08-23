@@ -63,6 +63,50 @@
   --dj-mono: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", monospace;
 }
 
+/* ============================================================================
+   LIGHT MODE — automatic via system preference
+   =========================================================================== */
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Surfaces */
+    --dj-black: #f5f6f8;
+    --dj-navy: #eef1f5;
+    --dj-navy-2: #e8ecf1;
+    --dj-panel: rgba(255, 255, 255, 0.88);
+    --dj-panel-solid: #ffffff;
+    --dj-glass: rgba(255, 255, 255, 0.7);
+    --dj-glass-strong: rgba(255, 255, 255, 0.92);
+    --dj-border: rgba(0, 140, 180, 0.15);
+    --dj-border-strong: rgba(0, 140, 180, 0.3);
+    --dj-border-faint: rgba(0, 0, 0, 0.08);
+
+    /* Brand — slightly deeper for light bg */
+    --dj-magenta: #e0259a;
+    --dj-purple: #9e20e6;
+    --dj-violet: #5a4dee;
+    --dj-blue: #0088e6;
+    --dj-cyan: #00c8e0;
+    --dj-gradient: linear-gradient(120deg, #e0259a 0%, #9e20e6 28%, #5a4dee 55%, #0088e6 78%, #00c8e0 100%);
+    --dj-glow-cyan: 0 0 18px rgba(0, 200, 224, 0.2);
+    --dj-glow-blue: 0 0 20px rgba(0, 136, 230, 0.18);
+
+    /* Text */
+    --dj-text: #1a1d23;
+    --dj-text-muted: #5a6374;
+    --dj-text-dim: #8e96a3;
+
+    /* Semantic */
+    --dj-success: #1aad82;
+    --dj-warning: #d49e2a;
+    --dj-danger: #e04060;
+    --dj-info: #00a8c0;
+
+    /* Shape */
+    --dj-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    --dj-shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.08);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dj-speed: 0s;

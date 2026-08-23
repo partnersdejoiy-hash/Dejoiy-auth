@@ -111,13 +111,43 @@ input::placeholder {
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
 
+/* Large screens */
+@media (min-width: 1440px) {
+  .page { padding: 36px; }
+  .page-title { font-size: 24px; }
+}
+
+/* Tablet landscape */
 @media (max-width: 1100px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Tablet portrait */
+@media (max-width: 768px) {
+  .page { padding: 22px; }
+  .page-title { font-size: 20px; }
+  .page-sub { margin-bottom: 18px; }
+  .grid { gap: 12px; }
+}
+
+/* Mobile */
 @media (max-width: 640px) {
   .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
-  .page { padding: 18px; }
+  .page { padding: 16px; }
+  .page-title { font-size: 18px; }
+  .page-sub { font-size: 12px; margin-bottom: 14px; }
+}
+
+/* Mobile small */
+@media (max-width: 360px) {
+  .page { padding: 12px; }
+  .page-title { font-size: 16px; }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page { padding: 12px; }
 }
 
 .muted { color: var(--dj-text-muted); }
@@ -163,4 +193,24 @@ table.data tbody tr:hover {
 /* Responsive tables */
 @media (max-width: 760px) {
   table.data { display: block; overflow-x: auto; white-space: nowrap; }
+}
+
+/* Touch-friendly tap targets on mobile */
+@media (max-width: 640px) {
+  button, .btn-mini, .nav-item, .social-btn {
+    min-height: 44px;
+  }
+  input, select, textarea {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom */
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
 }
