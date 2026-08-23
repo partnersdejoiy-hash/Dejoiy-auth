@@ -107,6 +107,19 @@ importers:
         specifier: ^6.0.7
         version: 6.4.3(@types/node@22.20.1)(tsx@4.23.12)
 
+  packages/sdk:
+    dependencies:
+      jose:
+        specifier: ^5.9.6
+        version: 5.10.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
 packages:
 
   '@aws-sdk/client-ses@3.1116.0':
