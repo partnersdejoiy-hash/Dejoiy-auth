@@ -272,11 +272,11 @@ export function LoginPage() {
           {/* ── VISUAL / WELCOME PANEL ── */}
           <div className="auth-visual-col">
             <div className="visual-content">
-              {/* Orbital rings */}
-              <div className="visual-rings" aria-hidden="true">
+              {/* Orbital rings */}                <div className="visual-rings" aria-hidden="true">
                 <div className="v-ring v-ring-1" />
                 <div className="v-ring v-ring-2" />
                 <div className="v-ring v-ring-3" />
+                <div className="v-ring v-ring-4" />
               </div>
 
               {/* DEJOIY full brand logo */}
