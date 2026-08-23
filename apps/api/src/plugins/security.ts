@@ -52,8 +52,9 @@ export const securityPlugin = fp(async (app: FastifyInstance) => {
     origin: (origin, cb) => {
       // Allow non-browser clients (curl, service accounts) without an Origin.
       if (!origin) return cb(null, true);
-      if (corsOrigins(cfg).includes(origin)) return cb(null, true);
-      return cb(new Error("Origin not allowed"), false);
+      // Disallowed origins get no CORS headers (browser blocks them); the
+      // request itself is not rejected, avoiding error-path confusion.
+      return cb(null, corsOrigins(cfg).includes(origin));
     },
     credentials: true,
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],

@@ -1,0 +1,8 @@
+# Local test override: replace host port bindings with conflict-free ports.
+services:
+  api:
+    ports: !override
+      - "127.0.0.1:8097:8080"
+  web:
+    ports: !override
+      - "127.0.0.1:8098:80"
