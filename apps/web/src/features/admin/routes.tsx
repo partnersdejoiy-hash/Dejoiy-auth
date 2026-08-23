@@ -6,27 +6,36 @@ import { UserDetailPage } from "./UserDetail";
 import { RolesPage } from "./Roles";
 import { ApplicationsPage } from "./Applications";
 import { SecurityPage } from "./Security";
+import { SessionsPage } from "./Sessions";
+import { AuditLogsPage } from "./AuditLogs";
+import { DevicesPage } from "./Devices";
 import { SettingsPage } from "./Settings";
 
-const NAV: NavItem[] = [
-  { to: "/app", label: "Dashboard", end: true },
-  { to: "/app/users", label: "Users", permission: "user.read" },
-  { to: "/app/roles", label: "Roles & Permissions", permission: "role.read" },
-  { to: "/app/applications", label: "Applications", permission: "application.read" },
-  { to: "/app/security", label: "Security", permission: "security.read" },
-  { to: "/app/settings", label: "System", permission: "system.config.read" }
-];
+export function AdminRoutes({ base = "/admin" }: { base?: string }) {
+  const nav: NavItem[] = [
+    { to: base, label: "Dashboard", end: true },
+    { to: `${base}/users`, label: "Users", permission: "user.read" },
+    { to: `${base}/roles`, label: "Roles & Permissions", permission: "role.read" },
+    { to: `${base}/sessions`, label: "Sessions", permission: "session.read" },
+    { to: `${base}/devices`, label: "Devices", permission: "device.read" },
+    { to: `${base}/security`, label: "Security", permission: "security.read" },
+    { to: `${base}/audit-logs`, label: "Audit Logs", permission: "audit.read" },
+    { to: `${base}/applications`, label: "Applications", permission: "application.read" },
+    { to: `${base}/settings`, label: "System", permission: "system.config.read" }
+  ];
 
-export function AdminRoutes() {
   return (
-    <AppShell panel="ADMIN" title="DEJOIY AUTH ADMIN" nav={NAV}>
+    <AppShell panel="ADMIN" title="DEJOIY AUTH ADMIN" nav={nav}>
       <Routes>
-        <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="users/:id" element={<UserDetailPage />} />
+        <Route index element={<AdminDashboard base={base} />} />
+        <Route path="users" element={<UsersPage base={base} />} />
+        <Route path="users/:id" element={<UserDetailPage base={base} />} />
         <Route path="roles" element={<RolesPage />} />
+        <Route path="sessions" element={<SessionsPage />} />
+        <Route path="devices" element={<DevicesPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
         <Route path="security" element={<SecurityPage />} />
+        <Route path="audit-logs" element={<AuditLogsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Routes>
     </AppShell>

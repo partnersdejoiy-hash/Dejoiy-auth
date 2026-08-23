@@ -15,7 +15,12 @@ export interface PermissionRow {
   description: string | null;
 }
 
-/** Resolve the full permission set for a user (roles → permissions). */
+/**
+ * Resolve the full permission set for a user (roles → permissions).
+ * SUPER_ADMIN carries the wildcard: the entire permission catalog is
+ * returned so API enforcement and frontend payloads agree with
+ * `requirePermission`/`isSuperAdmin` semantics.
+ */
 export async function getPermissionsForUser(userId: string): Promise<Set<string>> {
   const { rows } = await query<{ name: string }>(
     `SELECT DISTINCT p.name
@@ -26,7 +31,18 @@ export async function getPermissionsForUser(userId: string): Promise<Set<string>
       WHERE ur.user_id = $1`,
     [userId]
   );
-  return new Set(rows.map((r) => r.name));
+  const permissions = new Set(rows.map((r) => r.name));
+  // SUPER_ADMIN carries the wildcard regardless of explicit grants.
+  const { rows: admin } = await query(
+    `SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+      WHERE ur.user_id = $1 AND r.name = 'SUPER_ADMIN'`,
+    [userId]
+  );
+  if (admin.length > 0) {
+    const { rows: all } = await query<{ name: string }>("SELECT name FROM permissions");
+    for (const p of all) permissions.add(p.name);
+  }
+  return permissions;
 }
 
 export async function getRolesForUser(userId: string): Promise<RoleRow[]> {

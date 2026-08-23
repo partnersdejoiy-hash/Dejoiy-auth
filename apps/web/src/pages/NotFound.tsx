@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../lib/auth";
+import { homeFor } from "../App";
 import "./notfound.css";
 
 /**
@@ -9,6 +11,7 @@ import "./notfound.css";
  */
 export function NotFoundPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -116,9 +119,16 @@ export function NotFoundPage() {
         <div className="reroute">
           <span className="reroute-dot" /> Re-routing…
         </div>
-        <Link to="/" className="notfound-btn">
-          <span className="btn-sweep" aria-hidden /> Return to DEJOIY AUTH
-        </Link>
+        <div className="notfound-actions">
+          {user && (
+            <Link to={homeFor(user)} className="notfound-btn">
+              <span className="btn-sweep" aria-hidden /> Go to Dashboard
+            </Link>
+          )}
+          <Link to="/login" className="notfound-btn ghost">
+            <span className="btn-sweep" aria-hidden /> Back to Login
+          </Link>
+        </div>
       </div>
     </div>
   );

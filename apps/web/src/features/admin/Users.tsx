@@ -22,7 +22,7 @@ interface UserRow {
 
 const STATES = ["ACTIVE", "PENDING", "SUSPENDED", "BLOCKED", "LOCKED", "DISABLED", "TERMINATED", "PASSWORD_RESET_REQUIRED"];
 
-export function UsersPage() {
+export function UsersPage({ base = "/admin" }: { base?: string }) {
   const { hasPermission } = useAuth();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -111,7 +111,7 @@ export function UsersPage() {
               {rows.map((u) => (
                 <tr key={u.id}>
                   <td>
-                    <Link to={`/app/users/${u.id}`} className="user-cell">
+                    <Link to={`${base}/users/${u.id}`} className="user-cell">
                       <strong>{u.full_name ?? u.email}</strong>
                       <span className="mono dim">{u.user_number}</span>
                       {u.employee_id && <span className="dim">· {u.employee_id}</span>}
@@ -124,7 +124,7 @@ export function UsersPage() {
                   <td className="muted">{formatDate(u.created_at)}</td>
                   <td>
                     <div className="flex">
-                      <Link to={`/app/users/${u.id}`} className="btn-mini">Open</Link>
+                      <Link to={`${base}/users/${u.id}`} className="btn-mini">Open</Link>
                       {can("user.block") && u.account_state !== "BLOCKED" && (
                         <MiniButton className="danger" onClick={() => { setTarget(u); setAction("block"); }}>Block</MiniButton>
                       )}

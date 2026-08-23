@@ -30,8 +30,14 @@ function prefersReducedMotion(): boolean {
 export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<"intro" | "forming" | "scan" | "established">("intro");
+  const phaseRef = useRef<"intro" | "forming" | "scan" | "established">("intro");
   const establishedRef = useRef(false);
   const reduced = prefersReducedMotion();
+
+  // Keep a ref in sync so the rAF loop never reads stale state.
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   useEffect(() => {
     const canvasEl = canvasRef.current;
@@ -46,9 +52,9 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
     let width = 0;
     let height = 0;
     let logoMask: { x: number; y: number }[] = [];
-    let formingStart = 0;
     let establishedAt = 0;
     let scanY = -80;
+    let timers: ReturnType<typeof setTimeout>[] = [];
 
     // Rasterize the brand mark into target points.
     function buildLogoMask() {
@@ -125,23 +131,6 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
       for (let y = 0; y < height; y += gs) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
       ctx.stroke();
 
-      // Phase transitions
-      if (phase === "intro" && now > 1500) {
-        setPhase("forming");
-        formingStart = now;
-      }
-      if (phase === "forming" && now - formingStart > 2600) {
-        setPhase("scan");
-      }
-      if (phase === "scan" && now - (formingStart + 2600) > 3200) {
-        if (!establishedRef.current) {
-          establishedRef.current = true;
-          establishedAt = now;
-          setPhase("established");
-          setTimeout(() => onEstablished?.(), 900);
-        }
-      }
-
       // Particle behavior
       for (const p of particles) {
         const hasMask = logoMask.length > 0;
@@ -149,7 +138,7 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
           const target = logoMask[Math.floor(Math.random() * logoMask.length)]!;
           p.tx = target.x + (Math.random() * 1.6 - 0.8);
           p.ty = target.y + (Math.random() * 1.6 - 0.8);
-          const ease = phase === "established" ? 0.05 : 0.024;
+          const ease = phaseRef.current === "established" ? 0.05 : 0.024;
           p.x += (p.tx - p.x) * ease;
           p.y += (p.ty - p.y) * ease;
         } else {
@@ -170,8 +159,9 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
         ctx.fill();
       }
 
+      const cur = phaseRef.current;
       // Electric rotating ring around the emblem
-      if (phase !== "intro") {
+      if (cur !== "intro") {
         const cx = width / 2;
         const cy = height / 2;
         const r = Math.min(width, height) * 0.24;
@@ -188,7 +178,7 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
         ctx.stroke();
 
         // Scan line sweeping down across the emblem
-        if (phase === "scan" || phase === "established") {
+        if (cur === "scan" || cur === "established") {
           scanY = cy - r + ((t * 0.09) % (r * 2));
           const sg = ctx.createLinearGradient(0, scanY - 26, 0, scanY);
           sg.addColorStop(0, "rgba(0,229,255,0)");
@@ -201,7 +191,7 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
       }
 
       // "SECURE CHANNEL ESTABLISHED" flash
-      if (phase === "established" && now - establishedAt < 1600) {
+      if (cur === "established" && now - establishedAt < 1600) {
         ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
         ctx.fillRect(0, 0, width, height);
       }
@@ -209,19 +199,34 @@ export function LoginScene({ onEstablished }: { onEstablished?: () => void }) {
       raf = requestAnimationFrame(draw);
     }
 
+    const advance = (next: "intro" | "forming" | "scan" | "established", settle = false) => {
+      setPhase(next);
+      phaseRef.current = next;
+      if (next === "established") establishedAt = performance.now();
+      if (settle && !establishedRef.current) {
+        establishedRef.current = true;
+        timers.push(setTimeout(() => onEstablished?.(), 900));
+      }
+    };
+
     if (reduced) {
-      setPhase("established");
-      setTimeout(() => onEstablished?.(), 400);
+      timers.push(setTimeout(() => advance("established", true), 300));
     } else {
       resize();
       initParticles();
       raf = requestAnimationFrame(draw);
       window.addEventListener("resize", resize);
+      // Timeline driven by timeouts (independent of the rAF loop).
+      // Total ≈ 4.5s + 0.9s settle → form appears ~5.4s after load.
+      timers.push(setTimeout(() => advance("forming"), 900));
+      timers.push(setTimeout(() => advance("scan"), 900 + 1600));
+      timers.push(setTimeout(() => advance("established", true), 900 + 1600 + 2000));
     }
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      timers.forEach((t) => clearTimeout(t));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

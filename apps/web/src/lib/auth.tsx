@@ -25,7 +25,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (identifier: string, password: string) => Promise<LoginResult>;
-  verifyMfa: (identifier: string, code: string, challenge: string) => Promise<void>;
+  verifyMfa: (identifier: string, code: string, challenge: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
   isSuperAdmin: () => boolean;
@@ -65,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await api.post<LoginResult>("/auth/mfa/verify", { identifier, code, challenge });
     setTokens(result.accessToken, result.refreshToken);
     setUser(result.user);
+    return result;
   }, []);
 
   const logout = useCallback(async () => {

@@ -4,6 +4,7 @@ import {
   listUserSessions, revokeSession, revokeAllUserSessions
 } from "../services/session.js";
 import { authenticate, requirePermissions } from "../plugins/auth.js";
+import { query } from "../db/pool.js";
 import { errors } from "../errors.js";
 
 export async function sessionRoutes(app: FastifyInstance): Promise<void> {
@@ -11,6 +12,30 @@ export async function sessionRoutes(app: FastifyInstance): Promise<void> {
   app.get("/sessions/me", { preHandler: [authenticate] }, async (request) => {
     return listUserSessions(request.auth!.userId);
   });
+
+  // Admin: all sessions across the platform
+  app.get(
+    "/sessions",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["session.read"] })] },
+    async (request) => {
+      const q = request.query as Record<string, string | undefined>;
+      const limit = Math.min(Number(q.limit ?? 100), 500);
+      const offset = Number(q.offset ?? 0);
+      const { rows } = await query(
+        `SELECT s.id, s.user_id, u.user_number, u.email, s.ip, s.user_agent,
+                s.created_at, s.last_active_at, s.expires_at, s.revoked_at,
+                s.revoke_reason, s.requires_reauth, d.label AS device_label
+           FROM sessions s
+           JOIN users u ON u.id = s.user_id
+           LEFT JOIN devices d ON d.id = s.device_id
+          WHERE s.revoked_at IS NULL
+          ORDER BY s.last_active_at DESC
+          LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+      return rows;
+    }
+  );
 
   app.delete("/sessions/me/:id", { preHandler: [authenticate] }, async (request) => {
     const { id } = request.params as { id: string };

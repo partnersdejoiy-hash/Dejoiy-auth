@@ -27,7 +27,7 @@ interface DeviceRow {
   active_sessions: number;
 }
 
-export function UserDetailPage() {
+export function UserDetailPage({ base = "/admin" }: { base?: string }) {
   const { id } = useParams<{ id: string }>();
   const { hasPermission } = useAuth();
   const [user, setUser] = useState<any>(null);
@@ -92,7 +92,7 @@ export function UserDetailPage() {
 
   return (
     <div className="page">
-      <Link to="/app/users" className="muted" style={{ fontSize: 13 }}>← Back to users</Link>
+      <Link to={`${base}/users`} className="muted" style={{ fontSize: 13 }}>← Back to users</Link>
       <div className="flex-between wrap mt-8 mb-16">
         <div className="flex">
           <h1 className="page-title">{user.full_name ?? user.email}</h1>

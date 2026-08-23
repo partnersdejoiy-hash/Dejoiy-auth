@@ -16,7 +16,7 @@ interface DashboardData {
   recentAdminActions: Array<{ action: string; actor_role: string | null; target_label: string | null; created_at: string; result: string }>;
 }
 
-export function AdminDashboard() {
+export function AdminDashboard({ base = "/admin" }: { base?: string }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const toasts = useToasts();
@@ -44,7 +44,7 @@ export function AdminDashboard() {
           <h1 className="page-title">Security Dashboard</h1>
           <p className="page-sub" style={{ marginBottom: 0 }}>Identity posture across DEJOIY</p>
         </div>
-        <Link to="/app/security" className="btn-mini">View all events</Link>
+        <Link to={`${base}/security`} className="btn-mini">View all events</Link>
       </div>
 
       <div className="grid grid-4 mb-16">

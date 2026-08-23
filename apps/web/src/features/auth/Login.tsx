@@ -4,6 +4,7 @@ import { useAuth } from "../../lib/auth";
 import { ApiError } from "../../lib/api";
 import { AuthCard, AuthButton, SecureInput } from "../../components/ui";
 import { LoginScene } from "./LoginScene";
+import { homeFor } from "../../App";
 import "./login.css";
 
 export function LoginPage() {
@@ -33,7 +34,7 @@ export function LoginPage() {
         setLoading(false);
         return;
       }
-      navigate("/app");
+      navigate(homeFor(result.user));
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Sign-in failed";
       setError(message);
@@ -50,8 +51,8 @@ export function LoginPage() {
     setLoading(true);
     try {
       if (!mfaChallenge) throw new Error("Challenge missing");
-      await verifyMfa(identifier, mfaCode, mfaChallenge);
-      navigate("/app");
+      const result = await verifyMfa(identifier, mfaCode, mfaChallenge);
+      navigate(homeFor(result.user));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "MFA verification failed");
       setBlocked(true);

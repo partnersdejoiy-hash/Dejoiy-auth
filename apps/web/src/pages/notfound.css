@@ -1,6 +1,8 @@
 .notfound {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,6 +23,23 @@
   text-align: center;
   padding: 24px;
   animation: card-rise 0.7s var(--dj-ease) both;
+}
+.notfound-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.notfound-btn.ghost {
+  background: rgba(0, 229, 255, 0.06);
+  color: var(--dj-cyan);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  box-shadow: none;
+}
+.notfound-btn.ghost:hover {
+  color: var(--dj-cyan);
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 8px 26px rgba(0, 153, 255, 0.2);
 }
 .notfound-code {
   font-size: clamp(64px, 14vw, 130px);
