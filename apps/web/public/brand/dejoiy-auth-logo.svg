@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 128">
+  <defs>
+    <linearGradient id="lw" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2DAD"/>
+      <stop offset="30%" stop-color="#B830FF"/>
+      <stop offset="55%" stop-color="#6A5BFF"/>
+      <stop offset="80%" stop-color="#0099FF"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(4,4) scale(0.47)">
+    <circle cx="128" cy="128" r="122" fill="none" stroke="url(#lw)" stroke-opacity="0.25" stroke-width="2"/>
+    <rect x="56" y="86" width="144" height="84" rx="22" fill="#120A38" stroke="url(#lw)" stroke-width="4"/>
+    <path d="M128 112 C 112 128, 92 144, 74 156" fill="none" stroke="url(#lw)" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round"/>
+    <path d="M128 112 C 144 128, 164 144, 182 156" fill="none" stroke="url(#lw)" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round"/>
+    <path d="M64 92 C 78 76, 102 66, 128 66 C 154 66, 178 76, 192 92 L 192 100 C 178 86, 154 78, 128 78 C 102 78, 78 86, 64 100 Z" fill="url(#lw)"/>
+    <circle cx="128" cy="120" r="8" fill="none" stroke="#00E5FF" stroke-width="2.5"/>
+    <path d="M128 128 L128 136" stroke="#00E5FF" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <text x="140" y="70" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="30" font-weight="800" letter-spacing="5" fill="#FFFFFF">DEJOIY</text>
+  <text x="140" y="100" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="15" font-weight="600" letter-spacing="9" fill="url(#lw)">AUTH</text>
+</svg>

@@ -1,0 +1,77 @@
+/* ============================================================================
+   DEJOIY AUTH — Design tokens
+   Premium black · deep navy · electric cyan · blue glow · controlled magenta
+   ========================================================================== */
+
+:root {
+  /* Surfaces */
+  --dj-black: #0b0b0b;
+  --dj-navy: #0f1a2b;
+  --dj-navy-2: #122033;
+  --dj-panel: rgba(15, 26, 43, 0.72);
+  --dj-panel-solid: #101b2e;
+  --dj-glass: rgba(15, 26, 43, 0.55);
+  --dj-glass-strong: rgba(13, 22, 38, 0.85);
+  --dj-border: rgba(0, 229, 255, 0.14);
+  --dj-border-strong: rgba(0, 229, 255, 0.32);
+  --dj-border-faint: rgba(255, 255, 255, 0.07);
+
+  /* Brand */
+  --dj-magenta: #ff2dad;
+  --dj-purple: #b830ff;
+  --dj-violet: #6a5bff;
+  --dj-blue: #0099ff;
+  --dj-cyan: #00e5ff;
+  --dj-gradient: linear-gradient(120deg, #ff2dad 0%, #b830ff 28%, #6a5bff 55%, #0099ff 78%, #00e5ff 100%);
+  --dj-glow-cyan: 0 0 22px rgba(0, 229, 255, 0.35);
+  --dj-glow-blue: 0 0 26px rgba(0, 153, 255, 0.3);
+
+  /* Text */
+  --dj-text: #eef3fa;
+  --dj-text-muted: #9db0c7;
+  --dj-text-dim: #64748b;
+
+  /* Semantic */
+  --dj-success: #2dd4a7;
+  --dj-warning: #f5b544;
+  --dj-danger: #ff5c7a;
+  --dj-info: #00e5ff;
+
+  /* State colors for account status */
+  --st-pending: #f5b544;
+  --st-active: #2dd4a7;
+  --st-suspended: #f5b544;
+  --st-blocked: #ff5c7a;
+  --st-locked: #ff5c7a;
+  --st-disabled: #64748b;
+  --st-terminated: #a855f7;
+  --st-reset: #00e5ff;
+
+  /* Shape */
+  --dj-radius-sm: 8px;
+  --dj-radius: 14px;
+  --dj-radius-lg: 20px;
+  --dj-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --dj-shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.35);
+
+  /* Motion */
+  --dj-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dj-speed: 0.28s;
+
+  /* Typography */
+  --dj-font: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --dj-mono: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dj-speed: 0s;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+}

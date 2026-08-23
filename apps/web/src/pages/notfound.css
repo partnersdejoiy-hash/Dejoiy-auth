@@ -1,0 +1,94 @@
+.notfound {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 600px at 20% 20%, rgba(255, 45, 173, 0.06), transparent 60%),
+    radial-gradient(900px 600px at 80% 80%, rgba(0, 153, 255, 0.07), transparent 60%),
+    var(--dj-black);
+}
+.notfound canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.notfound-core {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 24px;
+  animation: card-rise 0.7s var(--dj-ease) both;
+}
+.notfound-code {
+  font-size: clamp(64px, 14vw, 130px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  background: linear-gradient(120deg, var(--dj-cyan), var(--dj-violet), var(--dj-magenta));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 30px rgba(0, 229, 255, 0.25));
+  font-variant-numeric: tabular-nums;
+}
+.notfound-divider {
+  width: 90px;
+  height: 2px;
+  margin: 20px auto;
+  background: linear-gradient(90deg, transparent, var(--dj-cyan), transparent);
+}
+.notfound-msg {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.lost-marker {
+  color: var(--dj-danger);
+  margin-right: 8px;
+  text-shadow: 0 0 14px rgba(255, 92, 122, 0.8);
+}
+.notfound-hint {
+  color: var(--dj-text-muted);
+  max-width: 420px;
+  margin: 12px auto 18px;
+  font-size: 13.5px;
+}
+.reroute {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--dj-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: var(--dj-cyan);
+  margin-bottom: 26px;
+}
+.reroute-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dj-cyan);
+  animation: chip-pulse 1.2s ease-in-out infinite;
+}
+.notfound-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(100deg, #0099ff, #00e5ff);
+  color: #06121f;
+  font-weight: 700;
+  padding: 13px 26px;
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 153, 255, 0.35);
+  transition: transform var(--dj-speed) var(--dj-ease), box-shadow var(--dj-speed) var(--dj-ease);
+}
+.notfound-btn:hover {
+  transform: translateY(-1px);
+  color: #06121f;
+  box-shadow: 0 12px 34px rgba(0, 229, 255, 0.45);
+}
