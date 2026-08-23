@@ -1,4 +1,5 @@
 import { query, withTransaction, clientExecutor } from "../db/pool.js";
+import { redisDel } from "../redis.js";
 import { errors } from "../errors.js";
 import { hashPassword } from "../crypto.js";
 import { assignRoleToUser, removeRoleFromUser, getRolesForUser } from "./rbac.js";
@@ -310,6 +311,8 @@ export async function unlockAccount(
       WHERE id = $1 RETURNING *`,
     [userId]
   );
+  // Clear the Redis lock + attempt counters so the user can sign in immediately.
+  await redisDel(`auth:lock:${userId}`, `auth:attempts:${userId}`);
   await recordAudit({
     actorUserId: actor.id ?? null,
     actorRole: actor.role ?? null,

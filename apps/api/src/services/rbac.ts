@@ -119,6 +119,7 @@ export async function createRole(input: {
 }): Promise<RoleRow> {
   const name = input.name.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
   if (!name) throw errors.validation("Role name is required");
+  if (await getRoleByName(name)) throw errors.conflict(`Role ${name} already exists`);
   const { rows } = await query<RoleRow>(
     `INSERT INTO roles (name, description, is_system) VALUES ($1,$2,false) RETURNING *`,
     [name, input.description ?? null]
