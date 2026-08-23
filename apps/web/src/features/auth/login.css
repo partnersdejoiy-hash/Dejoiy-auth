@@ -569,13 +569,15 @@
   .auth-page {
     background: linear-gradient(135deg, #e8ecf1 0%, #dce1ea 30%, #e3e8f0 60%, #d8dee8 100%);
   }
-  .auth-bg { opacity: 0.04; }
+  .auth-bg {
+    opacity: 0.22;
+  }
 
   .auth-card {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.6);
     -webkit-backdrop-filter: blur(24px) saturate(1.6);
     backdrop-filter: blur(24px) saturate(1.6);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.08),
       0 2px 8px rgba(0, 0, 0, 0.04),
@@ -604,6 +606,60 @@
   .secure-input label { color: #5a6374; }
   .pw-toggle { color: #8a8f98; }
   .pw-toggle:hover { color: #00b8d4; }
+
+  /* Visual panel — keep dark in light mode for contrast */
+  .auth-visual-col {
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(0, 229, 255, 0.2), transparent 55%),
+      radial-gradient(ellipse at 75% 80%, rgba(212, 175, 55, 0.1), transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(106, 91, 255, 0.08), transparent 60%),
+      linear-gradient(160deg, #0a0f1a 0%, #0d1520 30%, #0f1a2b 60%, #0a0f1a 100%);
+  }
+
+  /* Scanning arc — more visible in light mode */
+  .auth-visual-col::before {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 42%,
+      rgba(0, 229, 255, 0.06) 48%,
+      rgba(0, 229, 255, 0.18) 50%,
+      rgba(0, 229, 255, 0.06) 52%,
+      transparent 58%,
+      transparent 100%
+    );
+  }
+
+  /* Orbital rings — brighter in light mode */
+  .v-ring-1 {
+    border-color: rgba(0, 229, 255, 0.35);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+  }
+  .v-ring-2 { border-color: rgba(106, 91, 255, 0.18); }
+  .v-ring-3 { border-color: rgba(212, 175, 55, 0.12); }
+
+  /* Nodes — brighter */
+  .v-node {
+    background: rgba(0, 229, 255, 0.85);
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.6), 0 0 28px rgba(0, 229, 255, 0.2);
+  }
+
+  /* Logo — stronger glow in light mode */
+  .visual-logo {
+    filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.4)) drop-shadow(0 0 60px rgba(184, 48, 255, 0.2));
+  }
+
+  .visual-text h2 { color: #eef3fa; }
+  .visual-text p { color: #b0c4de; }
+
+  .visual-status {
+    color: rgba(0, 229, 255, 0.75);
+  }
+
+  .status-dot {
+    background: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+  }
 }
 
 /* ===========================================================================
