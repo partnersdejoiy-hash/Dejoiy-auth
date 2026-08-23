@@ -1,42 +1,35 @@
-<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FF1493;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#8B00FF;stop-opacity:1" />
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E91E8C;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#0066FF;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#001A4D;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#001A4D;stop-opacity:1" />
+    <linearGradient id="oGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E91E8C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066FF;stop-opacity:1" />
     </linearGradient>
   </defs>
   
-  <!-- Logo Icon -->
-  <g transform="translate(300, 100)">
-    <!-- Outer rounded square border -->
-    <rect x="0" y="0" width="300" height="300" rx="60" ry="60" fill="none" stroke="url(#logoGradient)" stroke-width="12"/>
-    
-    <!-- Inner rounded square with gradient fill -->
-    <rect x="12" y="12" width="276" height="276" rx="50" ry="50" fill="url(#logoGradient)" opacity="0.1"/>
-    
-    <!-- D Letter -->
-    <text x="80" y="200" font-size="180" font-weight="bold" fill="white" font-family="Arial, sans-serif">D</text>
-    
-    <!-- Smile/Joy curve -->
-    <path d="M 160 140 Q 180 180 200 160" stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
-    
-    <!-- Joy dot (eye) -->
-    <circle cx="190" cy="130" r="8" fill="white"/>
-  </g>
+  <!-- Icon Background -->
+  <rect x="50" y="50" width="200" height="200" rx="40" ry="40" fill="white"/>
+  
+  <!-- Icon Border -->
+  <rect x="50" y="50" width="200" height="200" rx="40" ry="40" fill="none" stroke="url(#iconGradient)" stroke-width="8"/>
+  
+  <!-- D Letter inside icon -->
+  <text x="150" y="160" font-size="120" font-weight="bold" fill="#E0E0E0" font-family="Arial, sans-serif" text-anchor="middle" opacity="0.5">D</text>
   
   <!-- DEJOIY Text -->
-  <text x="600" y="320" font-size="140" font-weight="900" fill="#001A4D" font-family="Arial, sans-serif" letter-spacing="8">DEJOIY</text>
+  <text x="300" y="140" font-size="100" font-weight="900" fill="#001A4D" font-family="Arial, sans-serif" letter-spacing="4">DE</text>
   
-  <!-- O with gradient circle -->
-  <circle cx="810" cy="280" r="45" fill="url(#logoGradient)" opacity="0.9"/>
-  <text x="795" y="310" font-size="140" font-weight="900" fill="white" font-family="Arial, sans-serif">O</text>
+  <!-- O with gradient background -->
+  <circle cx="550" cy="90" r="50" fill="url(#oGradient)"/>
+  <text x="550" y="120" font-size="100" font-weight="900" fill="white" font-family="Arial, sans-serif" text-anchor="middle">O</text>
   
-  <!-- YOU+JOY tagline -->
-  <text x="600" y="420" font-size="48" fill="#001A4D" font-family="Arial, sans-serif" letter-spacing="2">YOU+</text>
-  <text x="820" y="420" font-size="48" fill="#FF1493" font-family="Arial, sans-serif" font-weight="bold" letter-spacing="2">JOY</text>
+  <!-- IY Text -->
+  <text x="630" y="140" font-size="100" font-weight="900" fill="#001A4D" font-family="Arial, sans-serif" letter-spacing="4">IY</text>
+  
+  <!-- YOU+JOY Tagline -->
+  <text x="300" y="200" font-size="40" fill="#001A4D" font-family="Arial, sans-serif" letter-spacing="1">YOU+</text>
+  <text x="500" y="200" font-size="40" fill="#E91E8C" font-family="Arial, sans-serif" font-weight="bold" letter-spacing="1">JOY</text>
 </svg>
