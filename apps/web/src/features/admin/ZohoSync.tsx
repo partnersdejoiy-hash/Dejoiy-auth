@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { api } from "../../lib/api";
-import { AuthCard, LoadingScreen, SecurityBadge, MiniButton, StatCard, useToasts } from "../../components/ui";
+import { api, ApiError } from "../../lib/api";
+import { AuthCard, LoadingScreen, ErrorScreen, SecurityBadge, MiniButton, StatCard, useToasts } from "../../components/ui";
 
 
 interface SyncJob {
@@ -10,6 +10,7 @@ interface SyncJob {
   rows_synced: number;
   started_at: string;
   finished_at?: string;
+  error?: string;
   error_message?: string;
   summary?: string;
 }
@@ -21,40 +22,53 @@ interface SyncStatus {
   lastJob?: SyncJob;
 }
 
-export function ZohoSyncPage({ base }: { base?: string }) {
+export function ZohoSyncPage(_props: { base?: string }) {
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [jobs, setJobs] = useState<SyncJob[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [direction, setDirection] = useState<"push" | "pull" | "bidirectional">("bidirectional");
   const toasts = useToasts();
 
   const load = async () => {
+    setLoadError(null);
     try {
       const [statusRes, jobsRes] = await Promise.all([
-        api.get<SyncStatus>(`${base ?? "/api/v1"}/sync/zoho-sheet/status`),
-        api.get<SyncJob[]>(`${base ?? "/api/v1"}/sync/zoho-sheet?limit=10`)
+        api.get<SyncStatus>("/sync/zoho-sheet/status"),
+        api.get<SyncJob[]>("/sync/zoho-sheet?limit=10")
       ]);
       setStatus(statusRes);
       setJobs(Array.isArray(jobsRes) ? jobsRes : []);
-    } catch {
+    } catch (err) {
+      setLoadError(err instanceof ApiError ? err.message : "Failed to load sync status");
       toasts.push("error", "Failed to load sync status");
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); }, []);
 
   const runSync = async () => {
     setSyncing(true);
     try {
-      const data = await api.post<{ rowsSynced: number; configured: boolean; direction: string }>(`${base ?? "/api/v1"}/sync/zoho-sheet`, { direction });
+      const data = await api.post<{ rowsSynced: number; configured: boolean; direction: string }>("/sync/zoho-sheet", { direction });
       toasts.push("success", `Sync complete: ${data.rowsSynced} rows (${data.direction})`);
       await load();
-    } catch (err: any) {
-      toasts.push("error", err?.response?.data?.message ?? "Sync failed");
+    } catch (err) {
+      toasts.push("error", err instanceof ApiError ? err.message : "Sync failed");
     } finally {
       setSyncing(false);
     }
   };
+
+  if (loadError) {
+    return (
+      <ErrorScreen
+        title="COULD NOT LOAD ZOHO SYNC"
+        message={loadError}
+        onRetry={() => void load()}
+      />
+    );
+  }
 
   if (!status) return <LoadingScreen />;
 
@@ -177,7 +191,7 @@ export function ZohoSyncPage({ base }: { base?: string }) {
                       <SecurityBadge
                         severity={
                           job.status === "success" ? "info" :
-                          job.status === "error" ? "critical" :
+                          job.status === "error" || job.status === "failed" ? "critical" :
                           job.status === "running" ? "warning" : "low"
                         }
                       />
@@ -187,7 +201,7 @@ export function ZohoSyncPage({ base }: { base?: string }) {
                     <td>{new Date(job.started_at).toLocaleString()}</td>
                     <td>{job.finished_at ? new Date(job.finished_at).toLocaleString() : "—"}</td>
                     <td style={{ color: "var(--danger, #ef4444)", fontSize: 12, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {job.error_message ?? ""}
+                      {job.error ?? job.error_message ?? ""}
                     </td>
                   </tr>
                 ))}

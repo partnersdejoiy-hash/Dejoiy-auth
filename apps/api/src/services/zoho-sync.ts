@@ -3,6 +3,7 @@ import { query } from "../db/pool.js";
 import { acquireLock, releaseLock } from "../redis.js";
 import { logger } from "../logger.js";
 import { recordAudit } from "./audit.js";
+import { AppError, errors } from "../errors.js";
 
 /**
  * Zoho Sheet synchronization — bidirectional.
@@ -336,7 +337,7 @@ export async function runZohoSync(input: {
   const direction = input.direction ?? "bidirectional";
   const lockAcquired = await acquireLock("zoho-sync", 180);
   if (!lockAcquired) {
-    throw new Error("Zoho sync already running");
+    throw errors.conflict("Zoho sync is already running");
   }
 
   try {
@@ -371,9 +372,10 @@ export async function runZohoSync(input: {
         }
       } catch (apiErr) {
         logger.error({ jobId, err: apiErr }, "Zoho API error during sync");
+        // sync_status enum only allows: pending | running | success | failed
         await query(
-          `UPDATE sheet_sync_jobs SET status = 'error', finished_at = now(),
-           error_message = $2 WHERE id = $1`,
+          `UPDATE sheet_sync_jobs SET status = 'failed', finished_at = now(),
+           error = $2 WHERE id = $1`,
           [jobId, String(apiErr).slice(0, 500)]
         );
         throw apiErr;

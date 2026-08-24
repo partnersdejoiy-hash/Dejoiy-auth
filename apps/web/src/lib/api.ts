@@ -38,7 +38,12 @@ async function request<T>(
   retried = false
 ): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
+  // Only claim JSON when there is actually a body — otherwise Fastify rejects
+  // bodyless requests with "Body cannot be empty when content-type is set to
+  // 'application/json'" (FST_ERR_CTP_EMPTY_JSON_BODY).
+  if (init.body !== undefined && init.body !== null) {
+    headers.set("Content-Type", "application/json");
+  }
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
 
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers });

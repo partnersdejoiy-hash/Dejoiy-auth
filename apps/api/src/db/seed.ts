@@ -68,7 +68,8 @@ export const ROLE_CATALOG: Record<string, { description: string; permissions: st
       "user.read", "user.update", "user.activate", "user.suspend", "user.block", "user.unblock",
       "user.unlock", "user.disable", "user.terminate", "user.force_logout", "user.reset_password",
       "session.read", "session.revoke", "device.read", "device.revoke", "audit.read",
-      "security.read", "notification.read", "system.config.read", "sync.zoho.read"
+      "security.read", "notification.read", "system.config.read", "sync.zoho.read",
+      "sync.zoho.run"
     ]
   },
   ADMIN: {
