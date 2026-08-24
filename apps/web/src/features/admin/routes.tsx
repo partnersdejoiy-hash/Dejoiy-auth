@@ -10,6 +10,7 @@ import { SessionsPage } from "./Sessions";
 import { AuditLogsPage } from "./AuditLogs";
 import { DevicesPage } from "./Devices";
 import { SettingsPage } from "./Settings";
+import { ZohoSyncPage } from "./ZohoSync";
 
 export function AdminRoutes({ base = "/admin" }: { base?: string }) {
   const nav: NavItem[] = [
@@ -21,6 +22,7 @@ export function AdminRoutes({ base = "/admin" }: { base?: string }) {
     { to: `${base}/security`, label: "Security", permission: "security.read" },
     { to: `${base}/audit-logs`, label: "Audit Logs", permission: "audit.read" },
     { to: `${base}/applications`, label: "Applications", permission: "application.read" },
+    { to: `${base}/zoho-sync`, label: "Zoho Sheet Sync", permission: "sync.zoho.read" },
     { to: `${base}/settings`, label: "System", permission: "system.config.read" }
   ];
 
@@ -37,6 +39,7 @@ export function AdminRoutes({ base = "/admin" }: { base?: string }) {
         <Route path="security" element={<SecurityPage />} />
         <Route path="audit-logs" element={<AuditLogsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="zoho-sync" element={<ZohoSyncPage base={base} />} />
       </Routes>
     </AppShell>
   );
