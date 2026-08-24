@@ -5,6 +5,7 @@ import { randomToken } from "../crypto.js";
 import { createOAuthClient, getClientByClientId } from "../services/oauth.js";
 import { authenticate, requirePermissions } from "../plugins/auth.js";
 import { recordAudit } from "../services/audit.js";
+import { emitEvent } from "../services/events.js";
 import { errors } from "../errors.js";
 
 const applicationSchema = z.object({
@@ -81,6 +82,17 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
         ip: request.ip,
         after: { type: input.type, clientId }
       });
+      await emitEvent("application.created", {
+        applicationId: appRow.id,
+        name: input.name,
+        type: input.type,
+        clientId
+      }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
+      await emitEvent("oauth.client.created", {
+        applicationId: appRow.id,
+        name: input.name,
+        clientId
+      }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
 
       return { id: appRow.id, clientId, clientSecret };
     }
@@ -129,6 +141,15 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
         correlationId: request.correlationId,
         ip: request.ip
       });
+      await emitEvent(
+        body.status === "disabled" ? "application.disabled" : "application.updated",
+        {
+          applicationId: id,
+          name: rows[0]?.name ?? null,
+          status: body.status ?? "active"
+        },
+        { correlationId: request.correlationId, actorUserId: request.auth!.userId }
+      );
       return { ok: true };
     }
   );
@@ -138,7 +159,10 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["application.delete"] })] },
     async (request) => {
       const { id } = request.params as { id: string };
-      await query("UPDATE applications SET deleted_at = now() WHERE id = $1", [id]);
+      const { rows: deleted } = await query<{ name: string }>(
+        "UPDATE applications SET deleted_at = now() WHERE id = $1 RETURNING name", [id]
+      );
+      if (deleted.length === 0) throw errors.notFound("Application not found");
       await recordAudit({
         actorUserId: request.auth!.userId,
         actorRole: request.auth!.roles[0],
@@ -148,6 +172,11 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
         correlationId: request.correlationId,
         ip: request.ip
       });
+      await emitEvent("application.disabled", {
+        applicationId: id,
+        name: deleted[0]!.name,
+        deleted: true
+      }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
       return { ok: true };
     }
   );
@@ -172,6 +201,10 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
         correlationId: request.correlationId,
         ip: request.ip
       });
+      await emitEvent("oauth.client.secret_rotated", {
+        clientId,
+        applicationId: client.application_id
+      }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
       return { clientId, clientSecret: newSecret };
     }
   );

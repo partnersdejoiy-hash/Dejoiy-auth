@@ -26,6 +26,7 @@ import { itRoutes } from "./routes/it.js";
 import { mfaRoutes } from "./routes/mfa.js";
 import { bootstrapRoutes } from "./routes/bootstrap.js";
 import { webhookRoutes } from "./routes/webhooks.js";
+import { eventRoutes } from "./routes/events.js";
 import { startSyncScheduler } from "./workers/sync-scheduler.js";
 import { initializeSigningKeys } from "./services/jwt.js";
 
@@ -95,6 +96,7 @@ export async function buildServer(opts?: { autoMigrate?: boolean }) {
       v1.register(itRoutes);
       v1.register(mfaRoutes);
       v1.register(webhookRoutes);
+      v1.register(eventRoutes);
       v1.register(bootstrapRoutes);
     },
     { prefix: "/api/v1" }

@@ -5,6 +5,7 @@ import { hashToken, randomToken, sha256, deviceFingerprint } from "../crypto.js"
 import { errors } from "../errors.js";
 import { recordAudit } from "./audit.js";
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from "./security-events.js";
+import { emitEvent } from "./events.js";
 
 export interface SessionInput {
   userId: string;
@@ -89,6 +90,12 @@ export async function createSession(input: SessionInput): Promise<{
     );
   });
 
+  await emitEvent("session.created", {
+    userId: input.userId,
+    sessionId,
+    deviceId,
+    ip: input.ip ?? null
+  }, { actorUserId: input.userId });
   return { sessionId, refreshToken, deviceId, fingerprint };
 }
 
@@ -198,6 +205,9 @@ export async function revokeSession(
   reason: string,
   actor?: { id?: string; correlationId?: string }
 ): Promise<void> {
+  const { rows: sessionRows } = await query<{ user_id: string }>(
+    "SELECT user_id FROM sessions WHERE id = $1", [sessionId]
+  );
   await query("UPDATE sessions SET revoked_at = now(), revoke_reason = $2 WHERE id = $1 AND revoked_at IS NULL", [sessionId, reason]);
   await query("UPDATE refresh_tokens SET revoked_at = now(), revoke_reason = $2 WHERE session_id = $1 AND revoked_at IS NULL", [sessionId, reason]);
   await recordAudit({
@@ -208,6 +218,11 @@ export async function revokeSession(
     correlationId: actor?.correlationId ?? null,
     reason
   });
+  await emitEvent("session.revoked", {
+    userId: sessionRows[0]?.user_id ?? null,
+    sessionId,
+    reason
+  }, { correlationId: actor?.correlationId, actorUserId: actor?.id });
 }
 
 /** Revoke all sessions for a user (global logout / password change). */
@@ -244,6 +259,12 @@ export async function revokeAllUserSessions(
     reason,
     after: { revoked: sessionIds.length }
   });
+  await emitEvent("session.global_logout", {
+    userId,
+    revoked: sessionIds.length,
+    reason,
+    exceptSessionId: opts?.exceptSessionId ?? null
+  }, { correlationId: opts?.actor?.correlationId, actorUserId: opts?.actor?.id });
   return sessionIds.length;
 }
 
@@ -318,6 +339,14 @@ export async function getSessionById(id: string) {
 
 /** Revoke the current user's own session (logout). */
 export async function logoutSession(sessionId: string): Promise<void> {
+  const { rows } = await query<{ user_id: string }>(
+    "SELECT user_id FROM sessions WHERE id = $1", [sessionId]
+  );
   await query("UPDATE sessions SET revoked_at = now(), revoke_reason = 'logout' WHERE id = $1 AND revoked_at IS NULL", [sessionId]);
   await query("UPDATE refresh_tokens SET revoked_at = now(), revoke_reason = 'logout' WHERE session_id = $1 AND revoked_at IS NULL", [sessionId]);
+  await emitEvent("session.revoked", {
+    userId: rows[0]?.user_id ?? null,
+    sessionId,
+    reason: "logout"
+  }, { actorUserId: rows[0]?.user_id });
 }

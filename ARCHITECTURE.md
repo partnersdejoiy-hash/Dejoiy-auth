@@ -101,6 +101,27 @@ token triggers **reuse detection**: the whole token family is revoked and the us
 | Notification worker | Queue email events through the configured provider | On-demand |
 | Session sweeper | Expire stale sessions / refresh tokens | Interval |
 
+## 8.5 Event bus
+
+Every domain action emits an event through a single `emitEvent()` entry point:
+
+```
+USER UPDATED IN DEJOIY AUTH
+        │
+        ▼
+     emitEvent() ──► event_log (persisted, sanitized)
+        │
+        └──► webhook subscribers (HMAC-SHA256, idempotent by event_id)
+        └──► audit log
+```
+
+- Events: `user.*`, `login.*`, `account.locked`, `password.*`, `mfa.*`,
+  `session.*`, `role.changed`, `permission.changed`, `application.*`,
+  `oauth.client.*`, `security.*`.
+- **Idempotency**: every event has an `event_id`; webhook deliveries are keyed
+  on `(endpoint_id, event_id)` so replays never duplicate.
+- Emission is non-blocking for the caller (login/session hot paths unaffected).
+
 ## 9. Integration model
 
 DEJOIY applications integrate via:

@@ -5,6 +5,7 @@ import { generateTotpSecret, otpauthUri, verifyTOTP } from "./totp.js";
 import { errors } from "../errors.js";
 import { recordAudit } from "./audit.js";
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from "./security-events.js";
+import { emitEvent } from "./events.js";
 
 /**
  * MFA-ready architecture:
@@ -75,6 +76,10 @@ export async function enrollTotp(
     ip: ctx?.ip ?? null,
     correlationId: ctx?.correlationId
   });
+  await emitEvent("mfa.enabled", {
+    userId,
+    factorType: "totp"
+  }, { correlationId: ctx?.correlationId, actorUserId: userId });
 
   return {
     factorId,
@@ -143,6 +148,10 @@ export async function resetMfa(
     ip: actor?.ip ?? null,
     correlationId: actor?.correlationId ?? null
   });
+  await emitEvent("mfa.reset", {
+    userId,
+    actorUserId: actor?.id ?? null
+  }, { correlationId: actor?.correlationId, actorUserId: actor?.id });
 }
 
 export async function listMfaStatus(userId: string) {

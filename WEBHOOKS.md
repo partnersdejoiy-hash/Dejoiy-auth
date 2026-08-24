@@ -18,12 +18,15 @@ WEBHOOK_TIMEOUT_MS=10000
 | Event | Description |
 | --- | --- |
 | `user.created` | New identity created |
+| `user.updated` | User modified |
 | `user.activated` | Account activated |
 | `user.suspended` | Account suspended |
 | `user.blocked` | Account blocked |
 | `user.unblocked` | Account unblocked |
+| `user.unlocked` | Account unlocked |
 | `user.disabled` | Account disabled |
 | `user.terminated` | Account terminated |
+| `user.deleted` | Account soft-deleted |
 | `login.success` | Successful sign-in |
 | `login.failed` | Failed sign-in attempt |
 | `login.suspicious` | Suspicious login detected |
@@ -194,6 +197,37 @@ app.post("/webhook", (req, res) => {
 });
 ```
 
+## Event Bus (idempotent, event-driven)
+
+Domain actions emit events through the event bus (`services/events.ts`):
+
+```
+DOMAIN ACTION (login, user lifecycle, MFA, roles, applications, sessions)
+        │
+        ▼
+     emitEvent()
+        ├──► event_log (PostgreSQL — persisted, sanitized, auditable)
+        └──► webhook dispatch (HMAC-SHA256, background, non-blocking)
+```
+
+- Every event carries a unique `event_id` (idempotency key).
+- **Idempotency**: deliveries are keyed on `(endpoint_id, event_id)` — replaying
+  the same event never creates a duplicate delivery or a duplicate update.
+- Payloads are sanitized before persistence and delivery (no passwords, tokens,
+  MFA secrets, API keys, client secrets).
+- Emission never blocks the caller (login, session creation, …): webhook
+  delivery runs in the background.
+
+### Event log viewer
+
+```http
+GET /api/v1/events?eventType=user.created&limit=50&offset=0
+Authorization: Bearer <token>   # requires audit.read
+```
+
+Returns `{ rows, total }` with `event_id`, `event_type`, `payload`, `correlation_id`,
+`actor_user_id` and `created_at`. `GET /api/v1/events/types` lists all event types.
+
 ## Retry Policy
 
 Failed deliveries (non-2xx response or timeout) are retried with exponential backoff:
@@ -221,7 +255,7 @@ After `WEBHOOK_MAX_RETRIES` attempts, the delivery is marked as **dead** and no 
 
 ## Data Isolation
 
-Webhook payloads **never** contain:
+Webhook payloads and the event log **never** contain:
 - Passwords or password hashes
 - Access tokens or refresh tokens
 - MFA secrets or recovery codes

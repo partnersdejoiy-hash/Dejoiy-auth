@@ -4,6 +4,8 @@ import { errors } from "../errors.js";
 import { hashPassword } from "../crypto.js";
 import { assignRoleToUser, removeRoleFromUser, getRolesForUser } from "./rbac.js";
 import { recordAudit } from "./audit.js";
+import { emitEvent } from "./events.js";
+import type { WebhookEvent } from "./webhook.js";
 
 export type UserType = "customer" | "seller" | "employee" | "admin" | "service_account";
 export type AccountState =
@@ -129,6 +131,13 @@ export async function createUser(input: CreateUserInput): Promise<UserRow> {
     return userRow;
   });
 
+  await emitEvent("user.created", {
+    userId: user.id,
+    userNumber: user.user_number,
+    userType: input.userType,
+    email: user.email,
+    fullName: input.fullName ?? null
+  });
   return user;
 }
 
@@ -252,12 +261,12 @@ export async function listUsers(opts: {
 
 // ---- Lifecycle ---------------------------------------------------------------
 
-const LIFE_CYCLE_ACTIONS: Record<string, { target: AccountState; audit: string }> = {
-  activate: { target: "ACTIVE", audit: "USER_ACTIVATED" },
-  suspend: { target: "SUSPENDED", audit: "USER_SUSPENDED" },
-  block: { target: "BLOCKED", audit: "USER_BLOCKED" },
-  disable: { target: "DISABLED", audit: "USER_DISABLED" },
-  terminate: { target: "TERMINATED", audit: "USER_TERMINATED" }
+const LIFE_CYCLE_ACTIONS: Record<string, { target: AccountState; audit: string; event: WebhookEvent }> = {
+  activate: { target: "ACTIVE", audit: "USER_ACTIVATED", event: "user.activated" },
+  suspend: { target: "SUSPENDED", audit: "USER_SUSPENDED", event: "user.suspended" },
+  block: { target: "BLOCKED", audit: "USER_BLOCKED", event: "user.blocked" },
+  disable: { target: "DISABLED", audit: "USER_DISABLED", event: "user.disabled" },
+  terminate: { target: "TERMINATED", audit: "USER_TERMINATED", event: "user.terminated" }
 };
 
 export async function changeAccountState(
@@ -297,6 +306,14 @@ export async function changeAccountState(
     before: { account_state: user.account_state },
     after: { account_state: meta.target }
   });
+  await emitEvent(meta.event, {
+    userId,
+    userNumber: user.user_number,
+    email: user.email,
+    accountState: meta.target,
+    actorUserId: actor.id ?? null,
+    reason: actor.reason ?? null
+  }, { correlationId: actor.correlationId, actorUserId: actor.id });
   return updated;
 }
 
@@ -323,6 +340,12 @@ export async function unlockAccount(
     correlationId: actor.correlationId ?? null,
     ip: actor.ip ?? null
   });
+  await emitEvent("user.unlocked", {
+    userId,
+    userNumber: user.user_number,
+    email: user.email,
+    actorUserId: actor.id ?? null
+  }, { correlationId: actor.correlationId, actorUserId: actor.id });
   return rows[0]!;
 }
 
@@ -370,6 +393,11 @@ export async function updatePassword(
     correlationId: actor?.correlationId ?? null,
     ip: actor?.ip ?? null
   });
+  await emitEvent("password.changed", {
+    userId,
+    userNumber: user.user_number,
+    email: user.email
+  }, { correlationId: actor?.correlationId, actorUserId: actor?.id ?? userId });
 }
 
 /** True when the new password was used recently (password history check). */
@@ -415,6 +443,14 @@ export async function setUserRoles(
     before: { roles: current },
     after: { roles: roleNames }
   });
+  await emitEvent("role.changed", {
+    userId,
+    userNumber: user.user_number,
+    email: user.email,
+    before: current,
+    after: roleNames,
+    actorUserId: actor.id ?? null
+  }, { correlationId: actor.correlationId, actorUserId: actor.id });
 }
 
 /** Soft-delete a user. */
@@ -435,4 +471,10 @@ export async function deleteUser(
     correlationId: actor.correlationId ?? null,
     ip: actor.ip ?? null
   });
+  await emitEvent("user.deleted", {
+    userId,
+    userNumber: user.user_number,
+    email: user.email,
+    actorUserId: actor.id ?? null
+  }, { correlationId: actor.correlationId, actorUserId: actor.id });
 }

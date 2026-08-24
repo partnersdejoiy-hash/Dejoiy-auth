@@ -6,6 +6,7 @@ import {
 } from "../services/rbac.js";
 import { authenticate, requirePermissions } from "../plugins/auth.js";
 import { recordAudit } from "../services/audit.js";
+import { emitEvent } from "../services/events.js";
 import { errors } from "../errors.js";
 
 const roleSchema = z.object({
@@ -49,6 +50,12 @@ export async function roleRoutes(app: FastifyInstance): Promise<void> {
       ip: request.ip,
       after: { permissions: input.permissions }
     });
+    await emitEvent("role.changed", {
+      roleId: role.id,
+      roleName: role.name,
+      action: "created",
+      permissions: input.permissions
+    }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
     return role;
   });
 
@@ -70,6 +77,12 @@ export async function roleRoutes(app: FastifyInstance): Promise<void> {
       ip: request.ip,
       after: body.permissions ? { permissions: body.permissions } : undefined
     });
+    await emitEvent(body.permissions ? "permission.changed" : "role.changed", {
+      roleId: id,
+      roleName: role.name,
+      action: body.permissions ? "permissions_updated" : "updated",
+      permissions: body.permissions
+    }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
     return role;
   });
 
@@ -88,6 +101,11 @@ export async function roleRoutes(app: FastifyInstance): Promise<void> {
       correlationId: request.correlationId,
       ip: request.ip
     });
+    await emitEvent("role.changed", {
+      roleId: id,
+      roleName: role.name,
+      action: "deleted"
+    }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
     return { ok: true };
   });
 
@@ -104,6 +122,11 @@ export async function roleRoutes(app: FastifyInstance): Promise<void> {
       correlationId: request.correlationId,
       ip: request.ip
     });
+    await emitEvent("permission.changed", {
+      permissionId: permission.id,
+      permissionName: permission.name,
+      action: "created"
+    }, { correlationId: request.correlationId, actorUserId: request.auth!.userId });
     return permission;
   });
 }

@@ -7,12 +7,15 @@ import { logger } from "../logger.js";
 
 export const WEBHOOK_EVENTS = [
   "user.created",
+  "user.updated",
   "user.activated",
   "user.suspended",
   "user.blocked",
   "user.unblocked",
+  "user.unlocked",
   "user.disabled",
   "user.terminated",
+  "user.deleted",
   "login.success",
   "login.failed",
   "login.suspicious",
@@ -193,11 +196,15 @@ export async function listEndpoints(applicationId?: string): Promise<WebhookEndp
 /**
  * Dispatch a webhook event to all subscribed endpoints.
  * Non-blocking: failures are logged but never throw.
+ *
+ * When `eventId` is provided (event bus), deliveries are idempotent: a
+ * second dispatch of the same event to the same endpoint is skipped.
  */
 export async function dispatchEvent(
   eventType: WebhookEvent,
   payload: Record<string, unknown>,
-  correlationId?: string
+  correlationId?: string,
+  eventId?: string
 ): Promise<void> {
   const { rows: endpoints } = await query<{
     id: string;
@@ -212,7 +219,7 @@ export async function dispatchEvent(
 
   if (endpoints.length === 0) return;
 
-  const eventId = `evt_${Date.now()}_${randomBytes(8).toString("hex")}`;
+  const resolvedEventId = eventId ?? `evt_${Date.now()}_${randomBytes(8).toString("hex")}`;
 
   for (const endpoint of endpoints) {
     try {
@@ -220,7 +227,7 @@ export async function dispatchEvent(
       const sanitized = sanitizePayload(payload);
       const body = JSON.stringify({
         event: eventType,
-        event_id: eventId,
+        event_id: resolvedEventId,
         timestamp: new Date().toISOString(),
         correlation_id: correlationId ?? null,
         data: sanitized
@@ -229,13 +236,17 @@ export async function dispatchEvent(
       const signature = computeSignature(endpoint.secret, body);
       const cfg = getConfig();
 
-      // Store delivery attempt
+      // Store delivery attempt — idempotent per (endpoint_id, event_id).
       const { rows: deliveryRows } = await query<{ id: string }>(
         `INSERT INTO webhook_deliveries (endpoint_id, event_type, event_id, payload, signature, max_attempts)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [endpoint.id, eventType, eventId, JSON.parse(body), signature, cfg.WEBHOOK_MAX_RETRIES]
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (endpoint_id, event_id) DO NOTHING
+         RETURNING id`,
+        [endpoint.id, eventType, resolvedEventId, JSON.parse(body), signature, cfg.WEBHOOK_MAX_RETRIES]
       );
-      const deliveryId = deliveryRows[0]!.id;
+      const deliveryId = deliveryRows[0]?.id;
+      if (!deliveryId) continue; // already delivered (idempotent replay)
+
 
       // Deliver (with timeout)
       const controller = new AbortController();
@@ -247,9 +258,9 @@ export async function dispatchEvent(
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-DEJOIY-EVENT": eventType,
-            "X-DEJOIY-EVENT-ID": eventId,
-            "X-DEJOIY-TIMESTAMP": new Date().toISOString(),
+          "X-DEJOIY-EVENT": eventType,
+          "X-DEJOIY-EVENT-ID": resolvedEventId,
+          "X-DEJOIY-TIMESTAMP": new Date().toISOString(),
             "X-DEJOIY-SIGNATURE": signature,
             ...(correlationId ? { "X-DEJOIY-CORRELATION-ID": correlationId } : {})
           },
@@ -388,10 +399,10 @@ export function verifySignature(secret: string, body: string, signature: string)
 }
 
 /**
- * Sanitize a payload before sending via webhook.
+ * Sanitize a payload before sending via webhook or persisting to the event log.
  * Never include passwords, tokens, MFA secrets, etc.
  */
-function sanitizePayload(payload: Record<string, unknown>): Record<string, unknown> {
+export function sanitizePayload(payload: Record<string, unknown>): Record<string, unknown> {
   const blocked = new Set([
     "password",
     "passwordHash",

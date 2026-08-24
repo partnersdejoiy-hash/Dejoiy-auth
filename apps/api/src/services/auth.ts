@@ -22,6 +22,7 @@ import {
   newLoginEmail, suspiciousLoginEmail, accountLockedEmail, verifyEmailEmail
 } from "./notification.js";
 import { recordAudit } from "./audit.js";
+import { emitEvent } from "./events.js";
 
 export interface LoginContext {
   ip: string | null;
@@ -120,6 +121,11 @@ export async function login(
       eventType, severity, ip: ctx.ip, userAgent: ctx.userAgent,
       metadata: { reason }, correlationId
     });
+    await emitEvent("login.failed", {
+      identifier,
+      reason,
+      ip: ctx.ip
+    }, { correlationId, actorUserId: null });
     throw errors.invalidCredentials();
   };
 
@@ -148,6 +154,13 @@ export async function login(
         severity: "high", userId: user.id, ip: ctx.ip, userAgent: ctx.userAgent,
         metadata: { attempts }, correlationId
       });
+      await emitEvent("account.locked", {
+        userId: user.id,
+        userNumber: user.user_number,
+        email: user.email,
+        attempts,
+        ip: ctx.ip
+      }, { correlationId, actorUserId: null });
       await sendNotificationEmail("account_locked", accountLockedEmail(user.email ?? user.user_number), { to: user.email ?? user.user_number });
       await fail("account_locked", SECURITY_EVENT_TYPES.LOGIN_FAILED, "high");
     }
@@ -252,6 +265,13 @@ async function finalizeLogin(
     metadata: { sessionId: session.sessionId, suspicious: opts.wasSuspicious },
     correlationId: ctx.correlationId
   });
+  await emitEvent("login.success", {
+    userId,
+    userNumber: user.user_number,
+    email: user.email,
+    sessionId: session.sessionId,
+    suspicious: opts.wasSuspicious
+  }, { correlationId: ctx.correlationId, actorUserId: userId });
 
   // New-login + suspicious-login notifications (best-effort, async-safe).
   void sendNotificationEmail("new_login", newLoginEmail(payload.fullName ?? "there", ctx.ip, ctx.userAgent), { to: payload.email ?? undefined });
@@ -369,6 +389,11 @@ export async function forgotPassword(email: string, ctx: LoginContext): Promise<
     eventType: SECURITY_EVENT_TYPES.PASSWORD_RESET, severity: "info", userId: user.id,
     ip: ctx.ip, userAgent: ctx.userAgent, correlationId: ctx.correlationId
   });
+  await emitEvent("password.reset.requested", {
+    userId: user.id,
+    userNumber: user.user_number,
+    email: user.email
+  }, { correlationId: ctx.correlationId, actorUserId: user.id });
 }
 
 export async function resetPassword(
@@ -414,6 +439,11 @@ export async function resetPassword(
     ip: ctx.ip, correlationId: ctx.correlationId
   });
   await sendNotificationEmail("password_changed", passwordChangedEmail(), { to: user.email ?? undefined });
+  await emitEvent("password.reset.completed", {
+    userId: user.id,
+    userNumber: user.user_number,
+    email: user.email
+  }, { correlationId: ctx.correlationId, actorUserId: user.id });
 }
 
 // ---- Email verification -------------------------------------------------------------
@@ -529,6 +559,11 @@ export async function changeOwnPassword(
     correlationId: ctx.correlationId, ip: ctx.ip
   });
   await sendNotificationEmail("password_changed", passwordChangedEmail(), { to: user.email ?? undefined });
+  await emitEvent("password.changed", {
+    userId,
+    userNumber: user.user_number,
+    email: user.email
+  }, { correlationId: ctx.correlationId, actorUserId: userId });
 }
 
 export { welcomeEmail };
