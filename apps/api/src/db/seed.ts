@@ -40,6 +40,9 @@ export const PERMISSION_CATALOG: Record<string, { resource: string; description:
   "oauth.client.manage": { resource: "oauth", description: "Manage OAuth clients" },
   "sync.zoho.run": { resource: "sync", description: "Run Zoho Sheet sync" },
   "sync.zoho.read": { resource: "sync", description: "View sync status" },
+  "sync.zoho.update": { resource: "sync", description: "Configure Zoho sync (field mappings, mode, deletion policy)" },
+  "sync.zoho.resolve": { resource: "sync", description: "Resolve Zoho sync conflicts" },
+  "sync.zoho.generate": { resource: "sync", description: "Generate synthetic demo dataset" },
   "notification.read": { resource: "notification", description: "View notifications" },
   "notification.manage": { resource: "notification", description: "Manage notification providers" },
   "wfm.employee.manage": { resource: "wfm", description: "Manage WFM employee lifecycle" },
@@ -69,7 +72,7 @@ export const ROLE_CATALOG: Record<string, { description: string; permissions: st
       "user.unlock", "user.disable", "user.terminate", "user.force_logout", "user.reset_password",
       "session.read", "session.revoke", "device.read", "device.revoke", "audit.read",
       "security.read", "notification.read", "system.config.read", "sync.zoho.read",
-      "sync.zoho.run"
+      "sync.zoho.run", "sync.zoho.update", "sync.zoho.resolve", "sync.zoho.generate"
     ]
   },
   ADMIN: {

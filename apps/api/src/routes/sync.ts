@@ -1,5 +1,19 @@
 import type { FastifyInstance } from "fastify";
-import { runZohoSync, listSyncJobs, SYNC_FIELDS } from "../services/zoho-sync.js";
+import { z } from "zod";
+import {
+  runZohoSync,
+  listSyncJobs,
+  SYNC_FIELDS,
+  testZohoConnection,
+  getSyncConfig,
+  updateSyncConfig,
+  listConflicts,
+  resolveConflict,
+  getSyncStats,
+  FIELD_DIRECTIONS,
+  type FieldDirection
+} from "../services/zoho-sync.js";
+import { queueDemoGeneration, getDemoGenerationJob } from "../services/demo-generator.js";
 import { authenticate, requirePermissions } from "../plugins/auth.js";
 import { AppError } from "../errors.js";
 
@@ -76,6 +90,100 @@ export async function syncRoutes(app: FastifyInstance): Promise<void> {
         syncIntervalSeconds: cfg.ZOHO_SYNC_INTERVAL_SECONDS,
         lastJob: (await listSyncJobs(1, 0))[0] ?? null
       };
+    }
+  );
+
+  // ── Health stats (Phase 9 dashboard) ────────────────────────────────────
+
+  app.get(
+    "/sync/zoho-sheet/stats",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.read"] })] },
+    async () => getSyncStats()
+  );
+
+  // ── Connection test (Phase 8/9) ─────────────────────────────────────────
+
+  app.post(
+    "/sync/zoho-sheet/test",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.update"] })] },
+    async () => testZohoConnection()
+  );
+
+  // ── Field mappings + mode + deletion policy (Phase 4) ───────────────────
+
+  app.get(
+    "/sync/zoho-sheet/config",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.read"] })] },
+    async () => getSyncConfig()
+  );
+
+  app.put(
+    "/sync/zoho-sheet/config",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.update"] })] },
+    async (request) => {
+      const body = z.object({
+        fields: z.array(z.object({
+          field: z.string(),
+          direction: z.enum(FIELD_DIRECTIONS as [FieldDirection, ...FieldDirection[]])
+        })).optional(),
+        mode: z.enum(["scheduled", "near-real-time"]).optional(),
+        deletionPolicy: z.enum(["mark", "keep", "delete"]).optional(),
+        pollIntervalSeconds: z.number().int().min(30).max(3600).optional()
+      }).parse(request.body);
+
+      await updateSyncConfig(body, request.auth!.userId);
+      return getSyncConfig();
+    }
+  );
+
+  // ── Conflicts (Phase 5) ─────────────────────────────────────────────────
+
+  app.get(
+    "/sync/zoho-sheet/conflicts",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.read"] })] },
+    async (request) => {
+      const q = z.object({
+        status: z.enum(["pending", "resolved", "all"]).default("pending"),
+        limit: z.coerce.number().int().min(1).max(200).default(50),
+        offset: z.coerce.number().int().nonnegative().default(0)
+      }).parse(request.query);
+      return listConflicts(q.status, q.limit, q.offset);
+    }
+  );
+
+  app.post(
+    "/sync/zoho-sheet/conflicts/:id/resolve",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.resolve"] })] },
+    async (request) => {
+      const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+      const body = z.object({
+        resolution: z.enum(["keep_db", "keep_sheet", "skip"])
+      }).parse(request.body);
+      return resolveConflict(id, body.resolution, request.auth!.userId);
+    }
+  );
+
+  // ── Demo dataset generator (Phase 11) ───────────────────────────────────
+
+  app.post(
+    "/sync/zoho-sheet/generate-demo",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.generate"] })] },
+    async (request) => {
+      const body = z.object({
+        count: z.coerce.number().int().min(100).max(50000)
+      }).parse(request.body);
+      return queueDemoGeneration(body.count, request.auth!.userId);
+    }
+  );
+
+  app.get(
+    "/sync/zoho-sheet/generate-demo/:id",
+    { preHandler: [authenticate, async (r) => requirePermissions(r, { permissions: ["sync.zoho.generate"] })] },
+    async (request) => {
+      const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+      const job = await getDemoGenerationJob(id);
+      if (!job) throw new AppError(404, "NOT_FOUND", "Demo generation job not found");
+      return job;
     }
   );
 }

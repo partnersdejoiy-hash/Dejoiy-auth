@@ -100,7 +100,20 @@ const envSchema = z.object({
   ZOHO_CLIENT_SECRET: z.string().default(""),
   ZOHO_REFRESH_TOKEN: z.string().default(""),
   ZOHO_SHEET_URL: z.string().default(""),
+  ZOHO_SHEET_WORKSHEET: z.string().default(""),  // worksheet name; empty = first worksheet
   ZOHO_SYNC_INTERVAL_SECONDS: z.coerce.number().int().positive().default(3600),
+  // Sync mode: "scheduled" (interval) | "near-real-time" (incremental polling).
+  // We never claim real-time: Zoho Sheet has no native outbound event for cell edits.
+  ZOHO_SYNC_MODE: z.enum(["scheduled", "near-real-time"]).default("scheduled"),
+  ZOHO_POLL_INTERVAL_SECONDS: z.coerce.number().int().positive().default(60),
+  // Deletion policy for soft-deleted users: mark (Status=TERMINATED) | keep | delete (row only)
+  ZOHO_SYNC_DELETION_POLICY: z.enum(["mark", "keep", "delete"]).default("mark"),
+  // Rate-limit safety: minimum spacing between Zoho API calls + retry/backoff.
+  ZOHO_API_MIN_INTERVAL_MS: z.coerce.number().int().nonnegative().default(350),
+  ZOHO_SYNC_BATCH_SIZE: z.coerce.number().int().positive().default(50),
+  ZOHO_SYNC_MAX_RETRIES: z.coerce.number().int().nonnegative().default(3),
+  ZOHO_SYNC_BACKOFF_BASE_MS: z.coerce.number().int().positive().default(1000),
+  ZOHO_DEMO_MAX_RECORDS: z.coerce.number().int().positive().default(50000),
 
   OIDC_ISSUER_URL: z.string().url().default("http://localhost:8080"),
   OAUTH_AUTH_CODE_TTL_SECONDS: z.coerce.number().int().positive().default(300),
