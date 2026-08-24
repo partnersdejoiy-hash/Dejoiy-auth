@@ -27,6 +27,7 @@ import { mfaRoutes } from "./routes/mfa.js";
 import { bootstrapRoutes } from "./routes/bootstrap.js";
 import { webhookRoutes } from "./routes/webhooks.js";
 import { startSyncScheduler } from "./workers/sync-scheduler.js";
+import { initializeSigningKeys } from "./services/jwt.js";
 
 const APP_VERSION = "0.1.0";
 
@@ -65,6 +66,9 @@ export async function buildServer(opts?: { autoMigrate?: boolean }) {
   await app.register(authPlugin);
   await app.register(securityPlugin);
   await app.register(errorHandlerPlugin);
+
+  // Initialize Ed25519 JWT signing keys (generates ephemeral keys or loads from env).
+  await initializeSigningKeys();
 
   // Migrations + seed on boot for self-contained deployments (idempotent).
   if (opts?.autoMigrate !== false && cfg.NODE_ENV !== "test") {
